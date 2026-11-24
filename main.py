@@ -292,10 +292,16 @@ ALSO_ROWS = 14  # ceil(40/3); columns hold 14/13/13 items
 
 
 def also_col_items():
+    # Sequential reading order: col 1 = items 1-14, col 2 = 15-27,
+    # col 3 = 28-40 (was round-robin: col k held items k, k+3, ...).
     cols = [[], [], []]
-    for i, t in enumerate(ALSO):
-        cols[i % ALSO_COLS].append((i + 1, t))
-    # rebalance to 14/13/13 in reading order: col k holds items k, k+3, ...
+    sizes = [14, 13, 13]
+    idx = 0
+    for c, size in enumerate(sizes):
+        for _ in range(size):
+            if idx < len(ALSO):
+                cols[c].append((idx + 1, ALSO[idx]))
+                idx += 1
     return cols
 
 
@@ -404,7 +410,7 @@ def draw(cfg, ms):
                 yy += cfg["med_lh"]
         y += rh + 8
     y += gap
-    # also today: 3 columns (items dealt round-robin, 14/13/13)
+    # also today: 3 columns, sequential (1-14 / 15-27 / 28-40)
     y = section_label(cv, m, y + 4, cw, "ALSO TODAY \u2014 40 STORIES")
     also_w = (cw - 2 * 12) // 3
     for r in range(ALSO_ROWS):
